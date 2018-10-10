@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<manifest xmlns="http://tizen.org/ns/packages" api-version="3.0" package="org.example.servicesensor" version="1.0.0">
+    <profile name="wearable"/>
+    <service-application appid="org.example.servicesensor" exec="servicesensor" multiple="false" nodisplay="true" taskmanage="false" type="capp">
+        <label>servicesensor</label>
+        <icon>servicesensor.png</icon>
+    </service-application>
+    <privileges>
+        <privilege>http://tizen.org/privilege/mediastorage</privilege>
+        <privilege>http://tizen.org/privilege/externalstorage.appdata</privilege>
+        <privilege>http://tizen.org/privilege/recorder</privilege>
+        <privilege>http://tizen.org/privilege/dpm.storage</privilege>
+        <privilege>http://tizen.org/privilege/externalstorage</privilege>
+    </privileges>
+    <feature name="http://tizen.org/feature/sensor.temperature">true</feature>
+    <feature name="http://tizen.org/feature/sensor.accelerometer">true</feature>
+    <feature name="http://tizen.org/feature/sensor.gravity">true</feature>
+    <feature name="http://tizen.org/feature/sensor.barometer">true</feature>
+    <feature name="http://tizen.org/feature/sensor.gyroscope">true</feature>
+    <feature name="http://tizen.org/feature/sensor.magnetometer">true</feature>
+    <feature name="http://tizen.org/feature/sensor.humidity">true</feature>
+</manifest>

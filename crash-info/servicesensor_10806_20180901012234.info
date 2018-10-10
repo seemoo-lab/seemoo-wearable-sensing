@@ -1,0 +1,120 @@
+Executable File Path: /opt/usr/globalapps/UM2FcDkLYZ/bin/servicesensor
+Signal: 11
+      (SIGSEGV)
+
+Register Information
+gs  = 0x00000033, fs  = 0x00000000
+es  = 0x0000007b, ds  = 0x0000007b
+edi = 0x80f15800, esi = 0x80f08c3c
+ebp = 0xbfc8d1b8, esp = 0xbfc8d050
+eax = 0x00000000, ebx = 0x800a2000
+ecx = 0xb67651f4, edx = 0x00000000
+eip = 0x8009fdae
+
+Memory information
+MemTotal:   507848 KB
+MemFree:	    61768 KB
+Buffers:	    26876 KB
+Cached:	    245464 KB
+VmPeak:	     38912 KB
+VmSize:	     37888 KB
+VmLck:	          0 KB
+VmPin:	          0 KB
+VmHWM:	       8780 KB
+VmRSS:	       8780 KB
+VmData:	     19004 KB
+VmStk:	        136 KB
+VmExe:	          8 KB
+VmLib:	      16000 KB
+VmPTE:	         44 KB
+VmSwap:	         0 KB
+
+Threads Information
+Threads: 3
+PID = 10806 TID = 10806
+10806 10809 10810 
+
+Maps Information
+        8009f000         800a1000 r-xp /opt/usr/globalapps/UM2FcDkLYZ/bin/servicesensor
+        80eee000         80f30000 rw-p [heap]
+        b6768000         b676c000 r-xp /usr/lib/libuuid.so.1.3.0
+        b676e000         b6772000 r-xp /usr/lib/libcap.so.2.24
+        b6774000         b67bd000 r-xp /usr/lib/libblkid.so.1.1.0
+        b67c3000         b67ca000 r-xp /usr/lib/libsmack.so.1.3.1
+        b67ce000         b6869000 r-xp /usr/lib/libsystemd.so.0.16.0
+        b686d000         b68c9000 r-xp /usr/lib/libmount.so.1.1.0
+        b68cf000         b68f8000 r-xp /usr/lib/liblzma.so.5.2.2
+        b68fa000         b6908000 r-xp /usr/lib/libbuxton2.so.1.3.7
+        b690a000         b690f000 r-xp /usr/lib/libgdbm.so.3.0.0
+        b6911000         b6924000 r-xp /usr/lib/libresolv-2.24.so
+        b6929000         b6940000 r-xp /usr/lib/libz.so.1.2.11
+        b6942000         b6945000 r-xp /usr/lib/libgmodule-2.0.so.0.5200.2
+        b6947000         b6953000 r-xp /usr/lib/libminizip.so.1.0.0
+        b6955000         b6958000 r-xp /usr/lib/libSLP-db-util.so.0.1.0
+        b695a000         b697a000 r-xp /usr/lib/libpkgmgr_parser.so.0.12.12
+        b697e000         b6983000 r-xp /usr/lib/libcontext-shared.so.4.0.3
+        b6985000         b6988000 r-xp /usr/lib/libcontext-client.so.4.0.3
+        b698a000         b699e000 r-xp /usr/lib/libsensord-shared.so
+        b69a0000         b69a6000 r-xp /usr/lib/libffi.so.6.0.2
+        b69a9000         b69ac000 r-xp /usr/lib/libdl-2.24.so
+        b69ae000         b69b5000 r-xp /usr/lib/librt-2.24.so
+        b69b7000         b6a2b000 r-xp /usr/lib/libeina.so.1.16.0
+        b6a2e000         b6a3e000 r-xp /usr/lib/libeo.so.1.16.0
+        b6a41000         b6a54000 r-xp /usr/lib/libefl.so.1.16.0
+        b6a57000         b6ace000 r-xp /usr/lib/libpcre.so.1.2.9
+        b6ad2000         b6adc000 r-xp /usr/lib/libstorage.so.0.1
+        b6ade000         b6ae1000 r-xp /usr/lib/libttrace.so.1.1
+        b6ae3000         b6c42000 r-xp /usr/lib/libxml2.so.2.9.7
+        b6c49000         b6c4d000 r-xp /usr/lib/libiniparser.so.0
+        b6c4f000         b6d4e000 r-xp /usr/lib/libsqlite3.so.0.8.6
+        b6d53000         b6d59000 r-xp /usr/lib/libvconf.so.0.3.1
+        b6d5b000         b6d60000 r-xp /usr/lib/libcapi-system-info.so.0.2.1
+        b6d62000         b6d6a000 r-xp /usr/lib/libtzplatform-config-2.0.so.2.0.0
+        b6d6c000         b6d75000 r-xp /usr/lib/libxdgmime.so.1.1.0
+        b6d77000         b6f27000 r-xp /usr/lib/libgio-2.0.so.0.5200.2
+        b6f2d000         b6f56000 r-xp /usr/lib/libpkgmgr-info.so.0.12.12
+        b6f5a000         b713c000 r-xp /usr/lib/libcrypto.so.1.0.0
+        b7155000         b716e000 r-xp /usr/lib/libgcc_s.so.1
+        b7170000         b71ca000 r-xp /usr/lib/libm-2.24.so
+        b71cc000         b733c000 r-xp /usr/lib/libstdc++.so.6.0.22
+        b7346000         b7353000 r-xp /usr/lib/libcontext-sensor-recorder-client-genuine.so.4.0.1
+        b7356000         b7381000 r-xp /usr/lib/libsensor-genuine.so.4.0.3
+        b7383000         b73d5000 r-xp /usr/lib/libgobject-2.0.so.0.5200.2
+        b73d7000         b73fe000 r-xp /usr/lib/libjson-glib-1.0.so.0.200.0
+        b7400000         b740a000 r-xp /usr/lib/libcapi-base-common.so.0.4.20
+        b740d000         b7426000 r-xp /usr/lib/libpthread-2.24.so
+        b742a000         b7433000 r-xp /usr/lib/libappcore-common.so.1.9.25
+        b7437000         b7462000 r-xp /usr/lib/libecore.so.1.16.0
+        b7473000         b758e000 r-xp /usr/lib/libglib-2.0.so.0.5200.2
+        b7591000         b75c9000 r-xp /usr/lib/libaul.so.0.8.11
+        b75cb000         b7771000 r-xp /usr/lib/libc-2.24.so
+        b7778000         b7785000 r-xp /usr/lib/libmessage-port.so.1.3.19
+        b7787000         b778e000 r-xp /usr/lib/libdlog.so.0.0.0
+        b7798000         b77a6000 r-xp /usr/lib/libcapi-system-sensor.so.0.2.5
+        b77a8000         b77af000 r-xp /usr/lib/libcapi-appfw-app-control.so.0.7.3
+        b77b1000         b77b7000 r-xp /usr/lib/libbundle.so.0.2.3
+        b77b9000         b77bc000 r-xp /usr/lib/libappcore-agent.so.1.2.10
+        b77d4000         b77f7000 r-xp /usr/lib/ld-2.24.so
+        bfc70000         bfc91000 rw-p [stack]
+End of Maps Information
+
+Callstack Information (PID:10806)
+Call Stack Count: 17
+ 0: sensor_cb + 0x1ce (0x8009fdae) [/opt/usr/globalapps/UM2FcDkLYZ/bin/servicesensor] + 0xdae
+ 1: (0xb735afb3) [/usr/lib/libsensor-genuine.so.4.0.3] + 0x4fb3
+ 2: ipc::channel::read_sync(ipc::message&, bool) + 0xde (0xb699152e) [/usr/lib/libsensord-shared.so] + 0x752e
+ 3: ipc::channel_event_handler::handle(int, unsigned int) + 0xb2 (0xb6991b52) [/usr/lib/libsensord-shared.so] + 0x7b52
+ 4: (0xb699216b) [/usr/lib/libsensord-shared.so] + 0x816b
+ 5: g_main_context_dispatch + 0x12b (0xb74bde8b) [/usr/lib/libglib-2.0.so.0.5200.2] + 0x4ae8b
+ 6: (0xb74482eb) [/usr/lib/libecore.so.1.16.0] + 0x112eb
+ 7: (0xb744bd11) [/usr/lib/libecore.so.1.16.0] + 0x14d11
+ 8: (0xb744cc36) [/usr/lib/libecore.so.1.16.0] + 0x15c36
+ 9: ecore_main_loop_begin + 0xc7 (0xb744ce97) [/usr/lib/libecore.so.1.16.0] + 0x15e97
+10: (0xb77ba367) [/usr/lib/libappcore-agent.so.1.2.10] + 0x1367
+11: appcore_base_init + 0x218 (0xb742fa98) [/usr/lib/libappcore-common.so.1.9.25] + 0x5a98
+12: service_app_main_ext + 0x108 (0xb77ba968) [/usr/lib/libappcore-agent.so.1.2.10] + 0x1968
+13: service_app_main + 0x5d (0xb77baacd) [/usr/lib/libappcore-agent.so.1.2.10] + 0x1acd
+14: main + 0x1ec (0x800a03fc) [/opt/usr/globalapps/UM2FcDkLYZ/bin/servicesensor] + 0x13fc
+15: __libc_start_main + 0x108 (0xb75e3188) [/usr/lib/libc-2.24.so] + 0x18188
+16: _start + 0x31 (0x8009fa51) [/opt/usr/globalapps/UM2FcDkLYZ/bin/servicesensor] + 0xa51
+End of Call Stack

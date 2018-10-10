@@ -1,0 +1,6 @@
+set sysroot D:\tizen-studio\platforms\tizen-3.0\wearable\rootstraps\wearable-3.0-emulator.core
+set debug-file-directory D:\tizen-studio\platforms\tizen-3.0\wearable\rootstraps\wearable-3.0-emulator.core\usr\lib\debug
+set solib-search-path D:\Tizen2\workspace\ServiceSensor\Debug
+dir D:\tizen-studio\platforms\tizen-3.0\wearable\rootstraps\wearable-3.0-emulator.core\usr\src\debug
+file "D:\Tizen2\workspace\ServiceSensor\Debug\servicesensor"
+sharedlibrary
