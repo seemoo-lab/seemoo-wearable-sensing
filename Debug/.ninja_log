@@ -66,3 +66,12 @@
 1014	1648	0	servicesensor	f4f0989606c39714
 3	2375	0	src/servicesensor.o	a2bd1b8a4526b64b
 2376	6412	0	servicesensor	f4f0989606c39714
+2	720	0	src/servicesensor.o	a2bd1b8a4526b64b
+720	1371	0	servicesensor	f4f0989606c39714
+1	547	0	src/servicesensor.o	a2bd1b8a4526b64b
+547	1048	0	servicesensor	f4f0989606c39714
+0	156	0	clean_cov	b3de405e02eb7ca8
+156	178	0	clean_sa	46ab9549445ac981
+178	200	0	clean	d59b6dac04fa9b5d
+2	516	0	src/servicesensor.o	a2bd1b8a4526b64b
+517	963	0	servicesensor	f4f0989606c39714

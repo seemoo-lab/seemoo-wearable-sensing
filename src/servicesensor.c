@@ -135,14 +135,14 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 
 
 	if (type == SENSOR_PRESSURE) {
-		sprintf(size, "%d",event->value_count);
-		sendMessage(size);
-		sprintf(size,"%d",sizeof(event->values));
-	}
-	for (int i = 0; i < event->value_count; i++){
-		//fArray[i] = &fBuffer[i];
-		sprintf(fBuffer, "%f ",event->values[i]);
-		strcat(out, fBuffer);
+		//just take first val since somehow we get 4 values by the api
+		sprintf(fBuffer, "%f ",event->values[0]);
+	} else {
+		for (int i = 0; i < event->value_count; i++){
+			//fArray[i] = &fBuffer[i];
+			sprintf(fBuffer, "%f ",event->values[i]);
+			strcat(out, fBuffer);
+		}
 	}
 	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec);
 	strcat(out, timeStamp);
@@ -267,7 +267,7 @@ void add_listener(int index, sensor_type_e type, sensor_event_cb cb_func, void *
 bool service_app_create(void *data)
 {
     // Todo: add your code here.
-	//Actually do nothing
+	//Actually do nothing when started by another app it will be called in
 	//dlog_print(DLOG_DEBUG, "MYTAG", "Create Called");
 	//startListener(data);
     return true;
@@ -314,7 +314,7 @@ void startListener(void *data){
 	open_all_files();
 	if (is_supported(SENSOR_ACCELEROMETER)) {
 			sendMessage("Accel Supported");
-			add_listener(0,SENSOR_ACCELEROMETER, sensor_cb,data,20); // 20 ms = 50 hz
+			add_listener(0,SENSOR_ACCELEROMETER, sensor_cb,data,15); // 20 ms = 50 hz
 		}
 
 		if (is_supported(SENSOR_LINEAR_ACCELERATION)){
@@ -323,7 +323,7 @@ void startListener(void *data){
 		}
 		if (is_supported(SENSOR_GYROSCOPE)){
 			sendMessage("Gyro Supported");
-			add_listener(2,SENSOR_GYROSCOPE, sensor_cb,data,20);
+			add_listener(2,SENSOR_GYROSCOPE, sensor_cb,data,15);
 		}
 		if (is_supported(SENSOR_LIGHT)){
 			sendMessage("Light Supported");
