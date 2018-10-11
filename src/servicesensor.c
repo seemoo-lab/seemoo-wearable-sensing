@@ -8,9 +8,8 @@
 #include "glib.h"
 #include "stdlib.h"
 #include "storage.h"
-#include "recorder.h"
-#include "streamrecorder.h"
-
+#include <audio_io.h>
+#include <sound_manager.h>
 
 bool running = false;
 typedef struct {
@@ -21,11 +20,53 @@ typedef struct {
 
 } appdata_s;
 
+/******
+ * Recorder data
+ */
 
 
+audio_in_h input;
+FILE *fp_audio;
+
+typedef struct wavfile_header_s
+{
+    char    ChunkID[4];     /*  4   */
+    int32_t ChunkSize;      /*  4   */
+    char    Format[4];      /*  4   */
+
+    char    Subchunk1ID[4]; /*  4   */
+    int32_t Subchunk1Size;  /*  4   */
+    int16_t AudioFormat;    /*  2   */
+    int16_t NumChannels;    /*  2   */
+    int32_t SampleRate;     /*  4   */
+    int32_t ByteRate;       /*  4   */
+    int16_t BlockAlign;     /*  2   */
+    int16_t BitsPerSample;  /*  2   */
+    char    Subchunk2ID[4]; /*  4   */
+    int32_t Subchunk2Size;	/*  4   */
+} wavfile_header_t;
+
+#define SUBCHUNK1SIZE   (16)
+#define AUDIO_FORMAT    (1) /*For PCM*/
+#define NUM_CHANNELS    (1) // only mono
+#define SAMPLE_RATE 	(16000)
+
+#define BITS_PER_SAMPLE (16)
+
+#define BYTE_RATE       (SAMPLE_RATE * NUM_CHANNELS * BITS_PER_SAMPLE/8)
+#define BLOCK_ALIGN     (NUM_CHANNELS * BITS_PER_SAMPLE/8)
+
+
+
+
+
+
+/**
+ * Sensor struct
+ *
+ *
+ */
 int listenerSize= 0;
-
-recorder_h recorder;
 
 FILE *fp;
 FILE *fpaccel;
@@ -78,20 +119,31 @@ void
 sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 {
 	appdata_s *ad = (appdata_s *) user_data;
-
 	time_t raw_time;
 	time(&raw_time);
 	struct tm* l_time = localtime(&raw_time);
 	char fBuffer[100] = "";
 	char timeStamp[100] = "";
 	char out [1000] = "";
+	char size [50] = "";
 	sensor_type_e type;
 	sensor_get_type(sensor, &type);
+
+	if (type == SENSOR_LIGHT) {
+		sendMessage("light sensor called");
+	}
+
+
+	if (type == SENSOR_PRESSURE) {
+		sprintf(size, "%d",event->value_count);
+		sendMessage(size);
+		size = "";
+		sprintf(size,"%d",sizeof(event->values));
+	}
 	for (int i = 0; i < event->value_count; i++){
 		//fArray[i] = &fBuffer[i];
-		sprintf(fBuffer, "%f",event->values[i]);
+		sprintf(fBuffer, "%f ",event->values[i]);
 		strcat(out, fBuffer);
-		strcat(out, " ");
 	}
 	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec);
 	strcat(out, timeStamp);
@@ -100,52 +152,92 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 }
 
 
+void stop_audio(){
+	audio_in_unprepare(input);
+	audio_in_unset_stream_cb(input);
+	write_PCM16_stereo_header(fp_audio);
+	audio_in_destroy(input);
+	fclose(fp_audio);
+
+}
+
+
+/**
+ * Writes PCM16 header to existing audio File and overwrites the first 44 bytes so concider calling
+ * write_fake_header first
+ */
+int write_PCM16_stereo_header(FILE*   file_p)
+{
+    int ret;
+
+    wavfile_header_t wav_header;
+    int32_t subchunk2_size;
+    int32_t chunk_size;
+
+    size_t write_count;
+
+    fseek(file_p, 0, SEEK_END);
+
+
+    subchunk2_size  = ftell(file_p) - 44;
+    chunk_size      = subchunk2_size + 36;
+
+    wav_header.ChunkID[0] = 'R';
+    wav_header.ChunkID[1] = 'I';
+    wav_header.ChunkID[2] = 'F';
+    wav_header.ChunkID[3] = 'F';
+
+    wav_header.ChunkSize = chunk_size;
+
+    wav_header.Format[0] = 'W';
+    wav_header.Format[1] = 'A';
+    wav_header.Format[2] = 'V';
+    wav_header.Format[3] = 'E';
+
+    wav_header.Subchunk1ID[0] = 'f';
+    wav_header.Subchunk1ID[1] = 'm';
+    wav_header.Subchunk1ID[2] = 't';
+    wav_header.Subchunk1ID[3] = ' ';
+
+    wav_header.Subchunk1Size = SUBCHUNK1SIZE;
+    wav_header.AudioFormat = AUDIO_FORMAT;
+    wav_header.NumChannels = NUM_CHANNELS;
+    wav_header.SampleRate = SAMPLE_RATE;
+    wav_header.ByteRate = BYTE_RATE;
+    wav_header.BlockAlign = BLOCK_ALIGN;
+    wav_header.BitsPerSample = BITS_PER_SAMPLE;
+
+    wav_header.Subchunk2ID[0] = 'd';
+    wav_header.Subchunk2ID[1] = 'a';
+    wav_header.Subchunk2ID[2] = 't';
+    wav_header.Subchunk2ID[3] = 'a';
+    wav_header.Subchunk2Size = subchunk2_size;
+    fseek(file_p, 0, SEEK_SET);
+
+    write_count = fwrite( &wav_header,
+                            sizeof(wavfile_header_t), 1,
+                            file_p);
+
+    ret = (1 != write_count)? -1 : 0;
+
+    return ret;
+}
+
+
 void
 message_port_cb(int local_port_id, const char *remote_app_id, const char *remote_port,
                 bool trusted_remote_port, bundle *message, void *user_data)
 {
 	sendMessage("Callback Called");
+	/*
 	char *m;
 	bundle_get_str(message, "key", &m);
 	appdata_s *ad = (appdata_s *) user_data;
 	char out[50]="";
-	recorder_state_e state;
-		recorder_get_state(recorder, &state);
-		if (state == RECORDER_STATE_RECORDING) {
-			sendMessage("Recording");
-	}
-	sprintf(out, "%d", state);
-	sendMessage(out);
-	int err = recorder_commit(recorder);
-	//if(state == RECORDER_DEVICE_STATE_PAUSED){
-		//	sendMessage("record Paused");
-	//} else {print_error(err);}
-	if (err == RECORDER_ERROR_NONE){
-		sendMessage("Yay");
-	} else {print_error(err);}
-	sendMessage("After Paused Called");
-
-
-/*
-	recorder_get_state(recorder, &state); // Invalid Operation
-
-	err = recorder_commit(recorder);
-	if (err == RECORDER_ERROR_NONE) {
-		sendMessage("comitted");
-	} else{print_error(err);}
-	recorder_unprepare(recorder);
-	recorder_destroy(recorder);
-	/*
-			stopListener(data);
-			app_control_h reply;
-			app_control_create(&reply);
-			app_control_add_extra_data(reply, APP_CONTROL_DATA_SUBJECT, "finished");
-			app_control_reply_to_launch_request(reply, app_control, APP_CONTROL_RESULT_SUCCEEDED);
-
-			service_app_exit();*/
-
-
-	//sendMessage(m);
+	*/
+	stop_audio();
+	stopListener(user_data);
+	service_app_exit();
 
 }
 
@@ -157,32 +249,18 @@ bool is_supported(sensor_type_e type){
 }
 
 
-void add_listener(int index, sensor_type_e type, sensor_event_cb cb_func, void *data){
-	sendMessage("in Register listener");
+void add_listener(int index, sensor_type_e type, sensor_event_cb cb_func, void *data, int interval){
 	appdata_s *ad = (appdata_s *) data;
 	int min_interval;
 	//char sec[50];
 	sensor_get_default_sensor(type,&ad->sensor[listenerSize]);
 	sensor_create_listener(ad->sensor[listenerSize], &ad->listener[listenerSize]);
 	sensor_get_min_interval(ad->sensor[listenerSize], &min_interval);
-	sensor_listener_set_event_cb(ad->listener[listenerSize], min_interval, cb_func, NULL);
+	sensor_listener_set_event_cb(ad->listener[listenerSize], interval, cb_func, NULL);
 	sensor_listener_set_option(ad->listener[listenerSize], SENSOR_OPTION_ALWAYS_ON);
 	sensor_listener_start(ad->listener[listenerSize]);
 	listenerSize++;
 
-	//dlog_print(DLOG_DEBUG, "MYTAG", "sensor should run now");
-	/*bundle *b = bundle_create();
-	bundle_add_str(b, "command", "add listener");
-
-	if (str == SENSOR_ERROR_NONE){
-		bundle_add_str(b, "data","Everything is fine");
-	} else {
-		bundle_add_str(b, "data","something went wrong ");
-	}
-
-	message_port_send_message("UM2FcDkLYZ.HelloAccessoryProvider", "MY_PORT", b);
-	bundle_free(b);
-	*/
 }
 
 
@@ -237,7 +315,7 @@ void startListener(void *data){
 	open_all_files();
 	if (is_supported(SENSOR_ACCELEROMETER)) {
 			sendMessage("Accel Supported");
-			add_listener(0,SENSOR_ACCELEROMETER, sensor_cb,data);
+			add_listener(0,SENSOR_ACCELEROMETER, sensor_cb,data,20); // 20 ms = 50 hz
 		}
 
 		if (is_supported(SENSOR_LINEAR_ACCELERATION)){
@@ -246,10 +324,16 @@ void startListener(void *data){
 		}
 		if (is_supported(SENSOR_GYROSCOPE)){
 			sendMessage("Gyro Supported");
-			add_listener(2,SENSOR_GYROSCOPE, sensor_cb,data);
+			add_listener(2,SENSOR_GYROSCOPE, sensor_cb,data,20);
 		}
 		if (is_supported(SENSOR_LIGHT)){
 			sendMessage("Light Supported");
+			int min_interval;
+			char inter [1000] = "";
+			sensor_get_min_interval(ad->sensor[listenerSize], &min_interval);
+			sprintf(inter, "%d",min_interval);
+			sendMessage(inter);
+
 			add_listener(3,SENSOR_LIGHT, sensor_cb,data);
 		}
 		if (is_supported(SENSOR_HUMIDITY)){
@@ -271,16 +355,14 @@ void startListener(void *data){
 
 }
 
+
+
 void write_file(const char* filepath, const char* buf)
 {
-	sendMessage(filepath);
     FILE *fp;
     fp = fopen(filepath,"w");
-    sendMessage("File opened");
     fputs(buf,fp);
-    sendMessage("put buffer in file");
     fclose(fp);
-    sendMessage("Closed");
 }
 
 
@@ -288,17 +370,11 @@ char* get_write_filepath(char *filename)
 {
 
     char *write_filepath[1000];
-    char *resource_path = "/home/owner/media/Others/";//app_get_shared_data_path(); // get the application data directory path
+    char *resource_path = "/home/owner/media/Others/";// get the application data directory path
 
-    //sendMessage(app_get_external_data_path());
-    sendMessage(resource_path);
-    //mkdir(resource_path, S_IRWXU|S_IRWXO );
-    //char * error;
-    //sprintf(i, "%d",i);
     if(resource_path)
     {
         sprintf(write_filepath,"%s%s",resource_path,filename);
-        //free(resource_path);
     }
 
     return write_filepath;
@@ -342,7 +418,7 @@ void _state_changed_cb(recorder_state_e previous, recorder_state_e current, bool
 		}
 	if (current == RECORDER_STATE_PAUSED) {
 		sendMessage("recorder paused");
-		recorder_commit(recorder);
+		//recorder_commit(recorder);
 	}
 	if (current == RECORDER_STATE_CREATED) {
 		sendMessage("created");
@@ -359,70 +435,56 @@ void _state_changed_cb(recorder_state_e previous, recorder_state_e current, bool
 
 }
 
-void _recording_status_cb(unsigned long long elapsed_time, unsigned long long file_size, void *user_data)
+void
+_audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata)
 {
-	sendMessage("Recording status");
+    const void * buffer = NULL;
+
+    if (nbytes > 0) {
+        /*
+           Retrieve a pointer to the internal input buffer
+           and the number of recorded audio data bytes
+        */
+        int error_code = audio_in_peek(handle, &buffer, &nbytes);
+        if (error_code != AUDIO_IO_ERROR_NONE) {
+            dlog_print(DLOG_ERROR, LOG_TAG, "audio_in_peek() failed! Error code = %d", error_code);
+
+            return;
+        }
+
+        /* Store the recorded audio data in the file */
+        fwrite(buffer, sizeof(char), nbytes, fp_audio);
+
+        /* Remove the recorded audio data from the internal input buffer */
+        error_code = audio_in_drop(handle);
+        if (error_code != AUDIO_IO_ERROR_NONE)
+            dlog_print(DLOG_ERROR, LOG_TAG, "audio_in_drop() failed! Error code = %d", error_code);
+    }
 }
 
+void write_fake_header(FILE *file){
+	char bytes [44];
+	for (int i =0 ; i< 43; i++){
+		bytes[i] = 0;
+	}
+
+	fputs(bytes, file);
+
+}
 
 void start_recording(void *data){
 
 
 	char * filename;
-	appdata_s *ad = (appdata_s *) data;
-	int er = recorder_create_audiorecorder(&recorder);
-	recorder_set_state_changed_cb(recorder, _state_changed_cb, NULL);
-	if (er == RECORDER_ERROR_NONE){
-		sendMessage("recorder created !!!");
-	} else {print_error(er);}
-	er = recorder_attr_set_audio_device(recorder, RECORDER_AUDIO_DEVICE_MIC);
-	recorder_attr_set_size_limit(recorder, 0);
-	if (er == RECORDER_ERROR_NONE){
-		sendMessage("Mic set");
-	} else {print_error(er);}
-	er = recorder_set_audio_encoder(recorder, RECORDER_AUDIO_CODEC_AMR);
-	if (er == RECORDER_ERROR_NONE){
-		sendMessage("set Codec");
-	} else {print_error(er);}
-	er = recorder_set_file_format(recorder, RECORDER_FILE_FORMAT_3GP);
-	if (er == RECORDER_ERROR_NONE){
-		sendMessage("set format");
-	} else {print_error(er);}
-	er = recorder_attr_set_audio_samplerate(recorder, 16000);
-	recorder_attr_set_audio_encoder_bitrate(recorder, 288000);
-	if (er == RECORDER_ERROR_NONE){
-		sendMessage("set Sampling rate");
-	} else {print_error(er);}
+	filename = get_write_filepath("audio.wav");
+	fp_audio = fopen(filename, "w");
 
-	filename = get_write_filepath("audio.3gp");
-	er = recorder_set_filename(recorder, filename);
-	if (er == RECORDER_ERROR_NONE){
-		sendMessage(filename);
-	} else {print_error(er);}
-
-	recorder_set_recording_status_cb(recorder, _recording_status_cb, data);
-
-	int prep_error = recorder_prepare(recorder);
-	if(prep_error == RECORDER_ERROR_NONE){
-		sendMessage("prep Worked !!!");
-	} else {print_error(er);}
-	int error = recorder_start(recorder);
-	if( error == RECORDER_ERROR_NONE){
-		sendMessage("start recording called to the end !!!");
-
-	} else {print_error(er);}
-	char out[50] = " ";
-	recorder_state_e state;
-	recorder_get_state(recorder, &state);
-	if (state == RECORDER_STATE_RECORDING) {
-		sendMessage("Recording");
-
-	}
-	sprintf(out, "%d", state);
-	sendMessage(out);
-
+	audio_in_create(SAMPLE_RATE, AUDIO_CHANNEL_MONO, AUDIO_SAMPLE_TYPE_S16_LE, &input); //set up recorder for PCM recording audio
+	audio_in_set_stream_cb(input, _audio_io_stream_read_cb, NULL); //set callback for recording
+	audio_in_prepare(input); // starts the audio recording
 
 }
+
 
 
 void service_app_control(app_control_h app_control, void *data)
@@ -436,52 +498,11 @@ void service_app_control(app_control_h app_control, void *data)
 		//startListener(data);
 		sendMessage("start recording");
 		start_recording(data);
+		startListener(data);
 	}
 	if(!strcmp(operation, "stop")){
-		sendMessage("StopCalled");
+		sendMessage("StopCalled: outdated"); //outdated; should not be called anymore
 	}
-
-    // Todo: add your code here.
-	//appdata_s *ad = (appdata_s *) data; //<3
-	//char *operation;
-	//char *app_id;
-	//int res = app_control_clone(&ad->app_control_g, app_control);
-	/*
-	bundle *b = bundle_create();
-	bundle_add_str(b, "command", "service_app_control");
-	bundle_add_str(b, "data", "app_control");
-	int ret = message_port_send_message("UM2FcDkLYZ.HelloAccessoryProvider", "MY_PORT", b);
-	bundle_free(b);
-	//ad->app_control_g = app_control;
-	app_control_get_operation(app_control, &operation);
-
-
-	app_control_create(&ad->reply);
-	//app_control_create(&reply);
-
-	app_control_add_extra_data(ad->reply, APP_CONTROL_DATA_SUBJECT, "0");
-	*/
-
-	//app_control_reply_to_launch_request(ad->reply, app_control, APP_CONTROL_RESULT_SUCCEEDED);
-
-	//app_control_reply_to_launch_request(reply, ad->app_control_g, APP_CONTROL_RESULT_SUCCEEDED);
-	//app_control_re
-	//app_control_destroy(reply);
-//	if (is_supported(SENSOR_ACCELEROMETER)) {
-//		add_listener(SENSOR_ACCELEROMETER, sensor_cb,data);
-//	}
-
-
-		/*if (!strcmp(operation, "http://tizen.org/appcontrol/operation/service")) {
-			//char *phone_number;
-			//app_control_get_extra_data(app_control, "UI_App_ID", &phone_number);
-
-
-
-		}*/
-
-
-
     return;
 }
 

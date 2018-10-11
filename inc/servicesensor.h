@@ -23,3 +23,5 @@ FILE *get_file_by_type(sensor_type_e type);
 static void _state_changed_cb(recorder_state_e previous, recorder_state_e current, bool by_policy, void *user_data);
 void print_error(int error);
 void _recording_status_cb(unsigned long long elapsed_time, unsigned long long file_size, void *user_data);
+void _audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata);
+int write_PCM16_stereo_header(FILE*   file_p);
