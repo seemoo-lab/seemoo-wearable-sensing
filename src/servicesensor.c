@@ -137,7 +137,6 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 	if (type == SENSOR_PRESSURE) {
 		sprintf(size, "%d",event->value_count);
 		sendMessage(size);
-		size = "";
 		sprintf(size,"%d",sizeof(event->values));
 	}
 	for (int i = 0; i < event->value_count; i++){
@@ -334,7 +333,7 @@ void startListener(void *data){
 			sprintf(inter, "%d",min_interval);
 			sendMessage(inter);
 
-			add_listener(3,SENSOR_LIGHT, sensor_cb,data);
+			add_listener(3,SENSOR_LIGHT, sensor_cb,data,0);
 		}
 		if (is_supported(SENSOR_HUMIDITY)){
 			sendMessage("Humidity Supported");
@@ -346,7 +345,7 @@ void startListener(void *data){
 		}
 		if (is_supported(SENSOR_PRESSURE)){
 			sendMessage("Pressure Supported");
-			add_listener(6,SENSOR_PRESSURE, sensor_cb,data);
+			add_listener(6,SENSOR_PRESSURE, sensor_cb,data,0);
 		}
 		if (is_supported(SENSOR_TEMPERATURE)){
 			sendMessage("Temp Supported");
