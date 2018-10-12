@@ -118,25 +118,24 @@ int i = 0;
 void
 sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 {
-	appdata_s *ad = (appdata_s *) user_data;
+	//appdata_s *ad = (appdata_s *) user_data;
 	time_t raw_time;
+	struct timespec time_spec;
+	clock_gettime(CLOCK_REALTIME, &time_spec);
+	unsigned long long ms = time_spec.tv_nsec / 1000000LL;
 	time(&raw_time);
 	struct tm* l_time = localtime(&raw_time);
 	char fBuffer[100] = "";
 	char timeStamp[100] = "";
 	char out [1000] = "";
-	char size [50] = "";
+	//char size [50] = "";
 	sensor_type_e type;
 	sensor_get_type(sensor, &type);
-
-	if (type == SENSOR_LIGHT) {
-		sendMessage("light sensor called");
-	}
-
 
 	if (type == SENSOR_PRESSURE) {
 		//just take first val since somehow we get 4 values by the api
 		sprintf(fBuffer, "%f ",event->values[0]);
+		strcat(out, fBuffer);
 	} else {
 		for (int i = 0; i < event->value_count; i++){
 			//fArray[i] = &fBuffer[i];
@@ -144,7 +143,7 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 			strcat(out, fBuffer);
 		}
 	}
-	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec);
+	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	strcat(out, timeStamp);
 	strcat(out, "\r\n");
 	fputs(out, get_file_by_type(type));
@@ -291,7 +290,7 @@ void close_all_files(){
 
 void service_app_terminate(void *data)
 {
-	appdata_s *ad = (appdata_s *) data;
+	//appdata_s *ad = (appdata_s *) data;
 	bundle *b = bundle_create();
 
 	bundle_add_str(b, "command", "service_app_terminate");
@@ -402,7 +401,7 @@ void print_error(int error){
 			}
 }
 
-
+/* Not used anymore since we changed the recording approach
 void _state_changed_cb(recorder_state_e previous, recorder_state_e current, bool by_policy, void *user_data)
 {
 
@@ -433,7 +432,7 @@ void _state_changed_cb(recorder_state_e previous, recorder_state_e current, bool
 	}
 
 }
-
+*/
 void
 _audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata)
 {
@@ -488,7 +487,7 @@ void start_recording(void *data){
 
 void service_app_control(app_control_h app_control, void *data)
 {
-	appdata_s *ad = (appdata_s *) data;
+	//appdata_s *ad = (appdata_s *) data;
 	char *operation;
 	app_control_get_operation(app_control, &operation);
 	if(!strcmp(operation, "start")){

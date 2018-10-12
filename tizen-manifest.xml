@@ -9,7 +9,6 @@
         <privilege>http://tizen.org/privilege/mediastorage</privilege>
         <privilege>http://tizen.org/privilege/externalstorage.appdata</privilege>
         <privilege>http://tizen.org/privilege/recorder</privilege>
-        <privilege>http://tizen.org/privilege/dpm.storage</privilege>
         <privilege>http://tizen.org/privilege/externalstorage</privilege>
     </privileges>
     <feature name="http://tizen.org/feature/sensor.temperature">true</feature>
