@@ -10,8 +10,12 @@
 #include "storage.h"
 #include <audio_io.h>
 #include <sound_manager.h>
+#include "wifi-manager.h"
+#include "wifi.h"
+#include "bluetooth.h"
+#include "Ecore.h"
 
-bool running = false;
+
 typedef struct {
 	sensor_listener_h listener[50];
 	sensor_h sensor[50];
@@ -19,6 +23,9 @@ typedef struct {
 	app_control_h app_control_g;
 
 } appdata_s;
+
+bool running = false;
+
 
 /******
  * Recorder data
@@ -46,6 +53,7 @@ typedef struct wavfile_header_s
     int32_t Subchunk2Size;	/*  4   */
 } wavfile_header_t;
 
+
 #define SUBCHUNK1SIZE   (16)
 #define AUDIO_FORMAT    (1) /*For PCM*/
 #define NUM_CHANNELS    (1) // only mono
@@ -62,7 +70,7 @@ typedef struct wavfile_header_s
 
 
 /**
- * Sensor struct
+ * Sensor Data
  *
  *
  */
@@ -73,6 +81,8 @@ FILE *fpaccel;
 FILE *fpgyr;
 FILE *fplight;
 FILE *fppress;
+FILE *fpble;
+FILE *fpwifi;
 
 FILE *get_file_by_type(sensor_type_e type){
 	switch(type){
@@ -115,6 +125,79 @@ void getNamebyType(sensor_type_e type, char** name){
 
 int i = 0;
 
+/**
+ * BLuetooth and wifi
+ */
+
+
+
+wifi_manager_h *wifi_manager;
+GList *devices_list_ble;
+GList *devices_list_wifi;
+
+
+typedef struct {
+	int rssid;
+	char *bssid;
+} wifi_s ;
+
+bool __wifi_manager_found_ap_cb(wifi_ap_h ap, void *user_data) {
+    int rssi;
+    char *bssid;
+    char* ap_id = NULL;
+    char name[50];
+
+    wifi_ap_get_rssi(ap, &rssi);
+	wifi_ap_get_bssid(ap, &bssid);
+	sprintf(name, "%s",bssid);
+    wifi_s *new_wifi_ap = malloc(sizeof(wifi_s));
+    new_wifi_ap->bssid = strdup(bssid);
+    new_wifi_ap->rssid = rssi;
+    devices_list_wifi = g_list_append(devices_list_wifi, (gpointer)new_wifi_ap);
+    return true;
+}
+
+void _bluetooth_le_cb (int result,bt_adapter_le_device_scan_result_info_s *info, void *user_data){
+
+	sendMessage("LE device found");
+	wifi_s *new_ble_ap = malloc(sizeof(wifi_s));
+	new_ble_ap->bssid = strdup(info->remote_address);
+	new_ble_ap->rssid = info->rssi;
+	if (info != NULL) {
+		devices_list_ble = g_list_append(devices_list_ble, (gpointer)new_ble_ap);
+	}
+
+}
+
+
+void adapter_device_discovery_state_changed_cb(int result, bt_adapter_device_discovery_state_e discovery_state,
+											bt_adapter_device_discovery_info_s *discovery_info, void* user_data){
+
+	if (result == BT_ERROR_NONE) {
+		switch (discovery_state) {
+		 	 case BT_ADAPTER_DEVICE_DISCOVERY_STARTED:
+				 sendMessage("BLE started dicovery");
+				 break;
+			 case BT_ADAPTER_DEVICE_DISCOVERY_FINISHED:
+				 sendMessage("finished discovery");
+				 break;
+			 case BT_ADAPTER_DEVICE_DISCOVERY_FOUND: {
+				 wifi_s *new_ble_ap = malloc(sizeof(wifi_s));
+				 new_ble_ap->bssid = strdup(discovery_info->remote_address);
+				 new_ble_ap->rssid = discovery_info->rssi;
+				 if (discovery_info != NULL) {
+					 devices_list_ble = g_list_append(devices_list_ble, (gpointer)new_ble_ap);
+				 }
+				 sendMessage("New Ble device found");
+			 }
+	 }
+ }else {
+	 sendMessage("Error");
+	 bt_adapter_start_device_discovery();
+ }
+}
+
+
 void
 sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 {
@@ -128,7 +211,6 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 	char fBuffer[100] = "";
 	char timeStamp[100] = "";
 	char out [1000] = "";
-	//char size [50] = "";
 	sensor_type_e type;
 	sensor_get_type(sensor, &type);
 
@@ -143,6 +225,7 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 			strcat(out, fBuffer);
 		}
 	}
+	//char timeStamp[100] = "";
 	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	strcat(out, timeStamp);
 	strcat(out, "\r\n");
@@ -156,6 +239,45 @@ void stop_audio(){
 	write_PCM16_stereo_header(fp_audio);
 	audio_in_destroy(input);
 	fclose(fp_audio);
+
+}
+
+
+void start_ble_scanner (){
+
+	fpble = fopen(get_write_filepath("ble.txt"), "w");
+	devices_list_ble = NULL;
+	bt_initialize();
+	//bt_adapter_set_device_discovery_state_changed_cb(adapter_device_discovery_state_changed_cb, NULL);
+	bt_adapter_le_start_scan(_bluetooth_le_cb, NULL);
+	//bt_adapter_start_device_discovery();
+
+}
+
+void __scan_request_cb(wifi_error_e error_code, void *user_data) {
+    wifi_foreach_found_aps(__wifi_manager_found_ap_cb, NULL);
+}
+
+
+void start_wifi_scanner(){
+
+	//TODO: fix wifi
+	fpwifi = fopen(get_write_filepath("wifi.txt"), "w");
+	wifi_initialize();
+	wifi_scan(__scan_request_cb, NULL);
+	/*int err = wifi_manager_initialize(wifi_manager);
+	if (err == WIFI_ERROR_NONE) {
+		sendMessage("init of wifi worked");
+	}
+	char numb[20];
+	sprintf(numb, "%d",err);
+	sendMessage(numb);
+	wifi_manager_scan(wifi_manager,__wifi_manager_found_ap_cb, NULL);
+	sendMessage("after Scan");
+	if (err == WIFI_ERROR_NONE) {
+		sendMessage("Scan worked");
+	}*/
+
 
 }
 
@@ -226,13 +348,16 @@ void
 message_port_cb(int local_port_id, const char *remote_app_id, const char *remote_port,
                 bool trusted_remote_port, bundle *message, void *user_data)
 {
-	sendMessage("Callback Called");
-	/*
+
 	char *m;
+
 	bundle_get_str(message, "key", &m);
-	appdata_s *ad = (appdata_s *) user_data;
-	char out[50]="";
-	*/
+
+	if (strcmp(m, "status")){
+		char *ret;
+		sprintf(ret, "%s",running ? "true" : "false");
+		sendMessage(ret);
+	}
 	stop_audio();
 	stopListener(user_data);
 	service_app_exit();
@@ -302,10 +427,10 @@ void service_app_terminate(void *data)
 }
 
 void open_all_files(){
-	fpaccel = fopen(get_write_filepath("accel.txt"), "w");
-	fpgyr =fopen(get_write_filepath("gyro.txt"), "w");
-	fplight=fopen(get_write_filepath("light.txt"), "w");
-	fppress= fopen(get_write_filepath("bar.txt"), "w");
+	fpaccel = fopen(get_write_filepath("accData.txt"), "w");
+	fpgyr =fopen(get_write_filepath("gyrData.txt"), "w");
+	fplight=fopen(get_write_filepath("luxData.txt"), "w");
+	fppress= fopen(get_write_filepath("barData.txt"), "w");
 }
 
 void startListener(void *data){
@@ -326,12 +451,6 @@ void startListener(void *data){
 		}
 		if (is_supported(SENSOR_LIGHT)){
 			sendMessage("Light Supported");
-			int min_interval;
-			char inter [1000] = "";
-			sensor_get_min_interval(ad->sensor[listenerSize], &min_interval);
-			sprintf(inter, "%d",min_interval);
-			sendMessage(inter);
-
 			add_listener(3,SENSOR_LIGHT, sensor_cb,data,0);
 		}
 		if (is_supported(SENSOR_HUMIDITY)){
@@ -472,10 +591,26 @@ void write_fake_header(FILE *file){
 
 void start_recording(void *data){
 
+	FILE * audio_stamp;
+	char * stamp_path = get_write_filepath("audio.time");
+	audio_stamp = fopen(stamp_path, "w");
+
+	time_t raw_time;
+	struct timespec time_spec;
+	clock_gettime(CLOCK_REALTIME, &time_spec);
+	unsigned long long ms = time_spec.tv_nsec / 1000000LL;
+	time(&raw_time);
+	struct tm* l_time = localtime(&raw_time);
+
+	char timeStamp[100] = "";
+	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	fputs(timeStamp, audio_stamp);
+	fclose(audio_stamp);
 
 	char * filename;
 	filename = get_write_filepath("audio.wav");
 	fp_audio = fopen(filename, "w");
+
 
 	audio_in_create(SAMPLE_RATE, AUDIO_CHANNEL_MONO, AUDIO_SAMPLE_TYPE_S16_LE, &input); //set up recorder for PCM recording audio
 	audio_in_set_stream_cb(input, _audio_io_stream_read_cb, NULL); //set callback for recording
@@ -483,6 +618,68 @@ void start_recording(void *data){
 
 }
 
+void print_wifi(){
+
+	time_t raw_time;
+	struct timespec time_spec;
+	clock_gettime(CLOCK_REALTIME, &time_spec);
+	unsigned long long ms = time_spec.tv_nsec / 1000000LL;
+	time(&raw_time);
+	struct tm* l_time = localtime(&raw_time);
+	char timeStamp[100] = "";
+	sprintf(timeStamp, "dBm %d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	GList *next = devices_list_wifi;
+	wifi_s *data;
+	while(next != NULL){
+		data = next->data;
+		char strength[100] = "";
+		char out [1000] = "";
+		strcat(out, data->bssid);
+		strcat(out, " ");
+		sprintf(strength, "%d",data->rssid);
+		strcat(out, strength);
+		strcat(out, timeStamp);
+		strcat(out, "\r\n");
+		fputs(out, fpwifi);
+		next = next->next;
+	}
+
+
+	/*
+	devices_list_wifi
+	fputs("", fpwifi);
+*/
+
+}
+
+
+void print_ble(){
+	time_t raw_time;
+	struct timespec time_spec;
+	clock_gettime(CLOCK_REALTIME, &time_spec);
+	unsigned long long ms = time_spec.tv_nsec / 1000000LL;
+	time(&raw_time);
+	struct tm* l_time = localtime(&raw_time);
+	char timeStamp[100] = "";
+	sprintf(timeStamp, "dBm %d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	GList *next = devices_list_ble;
+	wifi_s *data;
+	while (next != NULL){
+
+		data = next->data;
+
+		char strength[100] = "";
+		char out [1000] = "";
+		strcat(out, data->bssid);
+		strcat(out, " ");
+		sprintf(strength, "%d",data->rssid);
+		strcat(out, strength);
+		strcat(out, timeStamp);
+		strcat(out, "\r\n");
+		fputs(out, fpble);
+		next = next->next;
+	}
+}
 
 
 void service_app_control(app_control_h app_control, void *data)
@@ -495,13 +692,66 @@ void service_app_control(app_control_h app_control, void *data)
 		message_port_register_local_port("MY_PORT", message_port_cb, data);
 		//startListener(data);
 		sendMessage("start recording");
+		running = true;
 		start_recording(data);
 		startListener(data);
+		start_ble_scanner();
+		start_wifi_scanner();
+		start_timer();
 	}
 	if(!strcmp(operation, "stop")){
 		sendMessage("StopCalled: outdated"); //outdated; should not be called anymore
 	}
     return;
+}
+
+int iteration = 0;
+
+/*
+ * Callback for ble and wifi to be called every 10 seconds;
+ */
+Eina_Bool __timer_cb(void *data){
+	if (!running) {
+		return ECORE_CALLBACK_CANCEL;
+	}
+	if (iteration == 0) {
+		iteration++;
+		bt_adapter_le_stop_scan();
+		return ECORE_CALLBACK_RENEW;
+	}
+	print_ble();
+	print_wifi();
+	devices_list_ble = NULL;
+	devices_list_wifi = NULL;
+	//bt_adapter_le_stop_scan();
+	bt_adapter_le_start_scan(_bluetooth_le_cb, NULL);
+	iteration--;
+	//bt_adapter_stop_device_discovery();
+	//bt_adapter_start_device_discovery();
+	wifi_scan(__scan_request_cb, NULL);
+
+	return ECORE_CALLBACK_RENEW;
+}
+
+Ecore_Timer * timer;
+
+void stop_timer(){
+
+	ecore_timer_del(timer);
+	fclose(fpwifi);
+	fclose(fpble);
+
+}
+
+/**
+ * adds a timer to be called every 10 seconds
+ */
+void start_timer(){
+
+
+	timer = ecore_timer_add(5, __timer_cb, NULL);
+
+
 }
 
 static void

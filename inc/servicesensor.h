@@ -5,6 +5,10 @@
 #include <sensor.h>
 #include <stdio.h>
 #include <recorder.h>
+#include <bluetooth.h>
+#include <wifi-manager.h>
+#include <wifi.h>
+#include <Ecore.h>
 
 #ifdef  LOG_TAG
 #undef  LOG_TAG
@@ -26,3 +30,11 @@ void _recording_status_cb(unsigned long long elapsed_time, unsigned long long fi
 void _audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata);
 int write_PCM16_stereo_header(FILE*   file_p);
 void stopListener(void *data);
+void adapter_device_discovery_state_changed_cb(int result, bt_adapter_device_discovery_state_e discovery_state, bt_adapter_device_discovery_info_s *discovery_info, void* user_data);
+void _scan_request_cb(wifi_error_e error_code, void *user_data);
+bool __wifi_manager_found_ap_cb(wifi_ap_h ap, void *user_data);
+void start_timer();
+void print_ble();
+void print_wifi();
+void _bluetooth_le_cb (int result,bt_adapter_le_device_scan_result_info_s *info, void *user_data);
+Eina_Bool __timer_cb(void *data);
