@@ -603,7 +603,7 @@ void start_recording(void *data){
 	struct tm* l_time = localtime(&raw_time);
 
 	char timeStamp[100] = "";
-	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	sprintf(timeStamp, "%d-%02d-%02d %02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	fputs(timeStamp, audio_stamp);
 	fclose(audio_stamp);
 
