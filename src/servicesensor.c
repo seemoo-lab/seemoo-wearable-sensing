@@ -438,7 +438,7 @@ void startListener(void *data){
 	open_all_files();
 	if (is_supported(SENSOR_ACCELEROMETER)) {
 			sendMessage("Accel Supported");
-			add_listener(0,SENSOR_ACCELEROMETER, sensor_cb,data,15); // 20 ms = 50 hz
+			add_listener(0,SENSOR_ACCELEROMETER, sensor_cb,data,20); // 20 ms = 50 hz
 		}
 
 		if (is_supported(SENSOR_LINEAR_ACCELERATION)){
@@ -447,11 +447,11 @@ void startListener(void *data){
 		}
 		if (is_supported(SENSOR_GYROSCOPE)){
 			sendMessage("Gyro Supported");
-			add_listener(2,SENSOR_GYROSCOPE, sensor_cb,data,15);
+			add_listener(2,SENSOR_GYROSCOPE, sensor_cb,data,20);
 		}
 		if (is_supported(SENSOR_LIGHT)){
 			sendMessage("Light Supported");
-			add_listener(3,SENSOR_LIGHT, sensor_cb,data,0);
+			add_listener(3,SENSOR_LIGHT, sensor_cb,data,100);
 		}
 		if (is_supported(SENSOR_HUMIDITY)){
 			sendMessage("Humidity Supported");
@@ -463,7 +463,7 @@ void startListener(void *data){
 		}
 		if (is_supported(SENSOR_PRESSURE)){
 			sendMessage("Pressure Supported");
-			add_listener(6,SENSOR_PRESSURE, sensor_cb,data,0);
+			add_listener(6,SENSOR_PRESSURE, sensor_cb,data,100);
 		}
 		if (is_supported(SENSOR_TEMPERATURE)){
 			sendMessage("Temp Supported");
