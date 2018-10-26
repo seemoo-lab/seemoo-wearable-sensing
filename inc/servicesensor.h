@@ -38,3 +38,4 @@ void print_ble();
 void print_wifi();
 void _bluetooth_le_cb (int result,bt_adapter_le_device_scan_result_info_s *info, void *user_data);
 Eina_Bool __timer_cb(void *data);
+Eina_Bool __time__cb(void *data);

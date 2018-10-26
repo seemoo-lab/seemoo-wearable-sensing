@@ -159,7 +159,6 @@ bool __wifi_manager_found_ap_cb(wifi_ap_h ap, void *user_data) {
 
 void _bluetooth_le_cb (int result,bt_adapter_le_device_scan_result_info_s *info, void *user_data){
 
-	sendMessage("LE device found");
 	wifi_s *new_ble_ap = malloc(sizeof(wifi_s));
 	new_ble_ap->bssid = strdup(info->remote_address);
 	new_ble_ap->rssid = info->rssi;
@@ -226,7 +225,7 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 		}
 	}
 	//char timeStamp[100] = "";
-	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon+1,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	strcat(out, timeStamp);
 	strcat(out, "\r\n");
 	fputs(out, get_file_by_type(type));
@@ -260,8 +259,6 @@ void __scan_request_cb(wifi_error_e error_code, void *user_data) {
 
 
 void start_wifi_scanner(){
-
-	//TODO: fix wifi
 	fpwifi = fopen(get_write_filepath("wifi.txt"), "w");
 	wifi_initialize();
 	wifi_scan(__scan_request_cb, NULL);
@@ -354,9 +351,9 @@ message_port_cb(int local_port_id, const char *remote_app_id, const char *remote
 	bundle_get_str(message, "key", &m);
 
 	if (strcmp(m, "status")){
-		char *ret;
-		sprintf(ret, "%s",running ? "true" : "false");
-		sendMessage(ret);
+		//char *ret;
+		//sprintf(ret, "%s",running ? "true" : "false");
+		//sendMessage(ret);
 	}
 	stop_audio();
 	stopListener(user_data);
@@ -486,9 +483,10 @@ void write_file(const char* filepath, const char* buf)
 char* get_write_filepath(char *filename)
 {
 
+
     char *write_filepath[1000];
     char *resource_path = "/home/owner/media/Others/";// get the application data directory path
-
+    mkdir(resource_path, 0777);
     if(resource_path)
     {
         sprintf(write_filepath,"%s%s",resource_path,filename);
@@ -603,7 +601,7 @@ void start_recording(void *data){
 	struct tm* l_time = localtime(&raw_time);
 
 	char timeStamp[100] = "";
-	sprintf(timeStamp, "%d-%02d-%02d %02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	sprintf(timeStamp, "%d-%02d-%02d %02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon+1,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	fputs(timeStamp, audio_stamp);
 	fclose(audio_stamp);
 
@@ -627,7 +625,7 @@ void print_wifi(){
 	time(&raw_time);
 	struct tm* l_time = localtime(&raw_time);
 	char timeStamp[100] = "";
-	sprintf(timeStamp, "dBm %d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	sprintf(timeStamp, "dBm %d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon+1,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	GList *next = devices_list_wifi;
 	wifi_s *data;
 	while(next != NULL){
@@ -661,7 +659,7 @@ void print_ble(){
 	time(&raw_time);
 	struct tm* l_time = localtime(&raw_time);
 	char timeStamp[100] = "";
-	sprintf(timeStamp, "dBm %d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
+	sprintf(timeStamp, "dBm %d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon+1,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	GList *next = devices_list_ble;
 	wifi_s *data;
 	while (next != NULL){
@@ -689,15 +687,22 @@ void service_app_control(app_control_h app_control, void *data)
 	app_control_get_operation(app_control, &operation);
 	if(!strcmp(operation, "start")){
 		sendMessage("start Called");
+		if (running) {
+			sendMessage("is Already running");
+			//TODO: send Time
+			return;
+		}
 		message_port_register_local_port("MY_PORT", message_port_cb, data);
 		//startListener(data);
 		sendMessage("start recording");
 		running = true;
 		start_recording(data);
 		startListener(data);
+		//sendMessage("Audio and sensors recording");
 		start_ble_scanner();
 		start_wifi_scanner();
 		start_timer();
+		sendMessage("running Normal");
 	}
 	if(!strcmp(operation, "stop")){
 		sendMessage("StopCalled: outdated"); //outdated; should not be called anymore
@@ -706,6 +711,24 @@ void service_app_control(app_control_h app_control, void *data)
 }
 
 int iteration = 0;
+time_t raw_time_recorder;
+
+
+Eina_Bool __time_recorder_cb(void *data){
+	char time[10];
+	struct tm* l_time = localtime(&raw_time_recorder);
+	sprintf(time, "%02d:%02d:02d",l_time->tm_hour,l_time->tm_min,l_time->tm_sec);
+	if (l_time->tm_hour == 8) {
+
+		//stop_audio();
+		//stopListener(user_data);
+		//s
+	}
+
+	return ECORE_CALLBACK_RENEW;
+
+}
+
 
 /*
  * Callback for ble and wifi to be called every 10 seconds;
@@ -735,22 +758,28 @@ Eina_Bool __timer_cb(void *data){
 
 Ecore_Timer * timer;
 
+Ecore_Timer * time_recorder;
+
+
 void stop_timer(){
 
 	ecore_timer_del(timer);
+	ecore_timer_del(time_recorder);
 	fclose(fpwifi);
 	fclose(fpble);
 
 }
 
 /**
- * adds a timer to be called every 10 seconds
+ * adds a timer to be called every 5 seconds
  */
 void start_timer(){
 
+	//time(&raw_time);
 
 	timer = ecore_timer_add(5, __timer_cb, NULL);
-
+	//time_recorder = ecore_timer_add(1, __time_recorder_cb, NULL);
+	//raw_time_recorder = 0L;
 
 }
 
