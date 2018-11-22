@@ -84,6 +84,11 @@ FILE *fppress;
 FILE *fpble;
 FILE *fpwifi;
 
+
+/*
+ * Returns corresponding File pointer to write sensor data to
+ * If an additional sensor is planed to be added you might want to add a new *FILE here too @see open_all_files() and @see close_all_files()
+ */
 FILE *get_file_by_type(sensor_type_e type){
 	switch(type){
 		case SENSOR_ACCELEROMETER : return fpaccel;
@@ -104,7 +109,9 @@ FILE *get_file_by_type(sensor_type_e type){
 }
 
 
-
+/*
+ * Returns String for given Sensor Type
+ */
 void getNamebyType(sensor_type_e type, char** name){
 	switch(type){
 	case SENSOR_ACCELEROMETER : name[0] = "ACCELEROMETER"; break;
@@ -141,6 +148,10 @@ typedef struct {
 	char *bssid;
 } wifi_s ;
 
+
+/*
+ * Add found Wifi devices to to list same as BLuetooth with MAC address and signal strength
+ */
 bool __wifi_manager_found_ap_cb(wifi_ap_h ap, void *user_data) {
     int rssi;
     char *bssid;
@@ -157,18 +168,26 @@ bool __wifi_manager_found_ap_cb(wifi_ap_h ap, void *user_data) {
     return true;
 }
 
-void _bluetooth_le_cb (int result,bt_adapter_le_device_scan_result_info_s *info, void *user_data){
 
+/*
+ * Callback for found Bluetooth LE devices which are written to a list which is printed every 10 seconds and then renewed
+ */
+void _bluetooth_le_cb (int result,bt_adapter_le_device_scan_result_info_s *info, void *user_data){
+	//simply writes MAC address and signal Strength to list and then to file
 	wifi_s *new_ble_ap = malloc(sizeof(wifi_s));
-	new_ble_ap->bssid = strdup(info->remote_address);
-	new_ble_ap->rssid = info->rssi;
-	if (info != NULL) {
+	new_ble_ap->bssid = strdup(info->remote_address);//address
+	new_ble_ap->rssid = info->rssi;//strength
+	if (info != NULL) { //list ti append data to
 		devices_list_ble = g_list_append(devices_list_ble, (gpointer)new_ble_ap);
 	}
 
 }
 
 
+/*
+ * Callback for found Bluetooth devices which are written to a list which is printed every 10 seconds and then renewed
+ * Not used since we changed to Bluetooth LE
+ */
 void adapter_device_discovery_state_changed_cb(int result, bt_adapter_device_discovery_state_e discovery_state,
 											bt_adapter_device_discovery_info_s *discovery_info, void* user_data){
 
@@ -197,10 +216,10 @@ void adapter_device_discovery_state_changed_cb(int result, bt_adapter_device_dis
 }
 
 
-void
-sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
-{
-	//appdata_s *ad = (appdata_s *) user_data;
+/*
+ * Callback for Sensors
+ */
+void sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data){
 	time_t raw_time;
 	struct timespec time_spec;
 	clock_gettime(CLOCK_REALTIME, &time_spec);
@@ -212,7 +231,7 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 	char out [1000] = "";
 	sensor_type_e type;
 	sensor_get_type(sensor, &type);
-
+	//create string to write to file
 	if (type == SENSOR_PRESSURE) {
 		//just take first val since somehow we get 4 values by the api
 		sprintf(fBuffer, "%f ",event->values[0]);
@@ -224,14 +243,19 @@ sensor_cb(sensor_h sensor, sensor_event_s *event, void *user_data)
 			strcat(out, fBuffer);
 		}
 	}
-	//char timeStamp[100] = "";
+	//append strings
 	sprintf(timeStamp, "%d-%02d-%02dT%02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon+1,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	strcat(out, timeStamp);
 	strcat(out, "\r\n");
+	//write to file
 	fputs(out, get_file_by_type(type));
 }
 
 
+/*
+ * Stops audio and closes File
+ * Inconsistent with close_all_files
+ */
 void stop_audio(){
 	audio_in_unprepare(input);
 	audio_in_unset_stream_cb(input);
@@ -242,14 +266,15 @@ void stop_audio(){
 }
 
 
+/*
+ * Starts scanning for Bluetooth LE devices
+ */
 void start_ble_scanner (){
-
 	fpble = fopen(get_write_filepath("ble.txt"), "w");
 	devices_list_ble = NULL;
 	bt_initialize();
-	//bt_adapter_set_device_discovery_state_changed_cb(adapter_device_discovery_state_changed_cb, NULL);
 	bt_adapter_le_start_scan(_bluetooth_le_cb, NULL);
-	//bt_adapter_start_device_discovery();
+
 
 }
 
@@ -258,24 +283,13 @@ void __scan_request_cb(wifi_error_e error_code, void *user_data) {
 }
 
 
+/*
+ * simply starts scanning for wifi devices
+ */
 void start_wifi_scanner(){
 	fpwifi = fopen(get_write_filepath("wifi.txt"), "w");
 	wifi_initialize();
 	wifi_scan(__scan_request_cb, NULL);
-	/*int err = wifi_manager_initialize(wifi_manager);
-	if (err == WIFI_ERROR_NONE) {
-		sendMessage("init of wifi worked");
-	}
-	char numb[20];
-	sprintf(numb, "%d",err);
-	sendMessage(numb);
-	wifi_manager_scan(wifi_manager,__wifi_manager_found_ap_cb, NULL);
-	sendMessage("after Scan");
-	if (err == WIFI_ERROR_NONE) {
-		sendMessage("Scan worked");
-	}*/
-
-
 }
 
 
@@ -341,6 +355,9 @@ int write_PCM16_stereo_header(FILE*   file_p)
 }
 
 
+/*
+ * on receive Messages from host app actually ther is just one command which should be stop this could be extended if needed by comparing the strings and commands
+ */
 void
 message_port_cb(int local_port_id, const char *remote_app_id, const char *remote_port,
                 bool trusted_remote_port, bundle *message, void *user_data)
@@ -368,7 +385,9 @@ bool is_supported(sensor_type_e type){
 	return b;
 }
 
-
+/*
+ * Add a given listener to its sensor with the interval in ms
+ */
 void add_listener(int index, sensor_type_e type, sensor_event_cb cb_func, void *data, int interval){
 	appdata_s *ad = (appdata_s *) data;
 	int min_interval;
@@ -394,6 +413,10 @@ bool service_app_create(void *data)
     return true;
 }
 
+/*
+ * Send Messages to host app
+ * easiest way to debugg the app
+ */
 void sendMessage(const char *str){
 	bundle *b = bundle_create();
 	bundle_add_str(b, "Message", str);
@@ -402,7 +425,9 @@ void sendMessage(const char *str){
 }
 
 
-
+/*
+ * Closes all Sensor Files
+ */
 void close_all_files(){
 	fclose(fpgyr);
 	fclose(fpaccel);
@@ -410,6 +435,9 @@ void close_all_files(){
 	fclose(fppress);
 }
 
+/*
+ * App Terminates and Closes all Sensor files
+ */
 void service_app_terminate(void *data)
 {
 	//appdata_s *ad = (appdata_s *) data;
@@ -423,6 +451,9 @@ void service_app_terminate(void *data)
     return;
 }
 
+/*
+ * opens all Sensor Files if you add another sensor below you also want to add the files here and add them to close_all_files()
+ */
 void open_all_files(){
 	fpaccel = fopen(get_write_filepath("accData.txt"), "w");
 	fpgyr =fopen(get_write_filepath("gyrData.txt"), "w");
@@ -430,6 +461,9 @@ void open_all_files(){
 	fppress= fopen(get_write_filepath("barData.txt"), "w");
 }
 
+/*
+ * Check if sensor is avaialbe and add them to start list
+ */
 void startListener(void *data){
 	appdata_s *ad = (appdata_s *) data;
 	open_all_files();
@@ -470,7 +504,10 @@ void startListener(void *data){
 }
 
 
-
+/*
+ * Writes String to File
+ * Should only be used for test purpose since fopen is called every time fputs should be called directly in callback
+ */
 void write_file(const char* filepath, const char* buf)
 {
     FILE *fp;
@@ -480,10 +517,11 @@ void write_file(const char* filepath, const char* buf)
 }
 
 
+/*
+ * Returns a writable and accessible path for date to be stored in with the given FileName
+ */
 char* get_write_filepath(char *filename)
 {
-
-
     char *write_filepath[1000];
     char *resource_path = "/home/owner/media/Others/";// get the application data directory path
     mkdir(resource_path, 0777);
@@ -495,17 +533,20 @@ char* get_write_filepath(char *filename)
     return write_filepath;
 }
 
-
+/*
+ * Stops/removes Sensor Listener
+ */
 void stopListener(void *data){
 	appdata_s *ad = (appdata_s *) data;
-
 	for (int i = 0; i < listenerSize; i++) {
 			sensor_listener_stop(ad->listener[i]);
 			sensor_destroy_listener(ad->listener[i]);
 	}
 }
 
-
+/*
+ * Not used anymore since the recording method has been change but might be useful in the future
+ */
 void print_error(int error){
 	switch(error){
 				case RECORDER_ERROR_INVALID_PARAMETER: sendMessage("Invalid parameter"); return;
@@ -518,40 +559,10 @@ void print_error(int error){
 			}
 }
 
-/* Not used anymore since we changed the recording approach
-void _state_changed_cb(recorder_state_e previous, recorder_state_e current, bool by_policy, void *user_data)
-{
-
-	char b[100]  ="";
-	sprintf(b, "prev %d, curr %d",previous,current);
-	sendMessage(b);
-	if (current == RECORDER_DEVICE_STATE_RECORDING) {
-		sendMessage("Recording ....");
-	}
-	if (current == RECORDER_DEVICE_STATE_IDLE) {
-			sendMessage("idel");
-		}
-	if (current == RECORDER_STATE_PAUSED) {
-		sendMessage("recorder paused");
-		//recorder_commit(recorder);
-	}
-	if (current == RECORDER_STATE_CREATED) {
-		sendMessage("created");
-	}
-	if (current == RECORDER_DEVICE_STATE_IDLE){
-		sendMessage("idel");
-	}
-	if(current == RECORDER_STATE_NONE){
-		sendMessage("NONE");
-	}
-	if (current == RECORDER_DEVICE_STATE_RECORDING) {
-		sendMessage("recording");
-	}
-
-}
-*/
-void
-_audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata)
+/*
+ * Raw audio input CB just needs to be written to the file hwich had been created in method start_recording
+ */
+void _audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata)
 {
     const void * buffer = NULL;
 
@@ -577,6 +588,11 @@ _audio_io_stream_read_cb(audio_in_h handle, size_t nbytes, void *userdata)
     }
 }
 
+
+/*
+ * Writes initial amount of bytes for wav header to be overwritten at the end when all parameters are known.
+ * because size = length of the recording need to be in the header...
+ */
 void write_fake_header(FILE *file){
 	char bytes [44];
 	for (int i =0 ; i< 43; i++){
@@ -587,12 +603,18 @@ void write_fake_header(FILE *file){
 
 }
 
+
+/*
+ * starts recording audio
+ */
 void start_recording(void *data){
 
+	//Create file for timestamp
 	FILE * audio_stamp;
 	char * stamp_path = get_write_filepath("audio.time");
 	audio_stamp = fopen(stamp_path, "w");
 
+	//setup Timestamp to save to audio.time file
 	time_t raw_time;
 	struct timespec time_spec;
 	clock_gettime(CLOCK_REALTIME, &time_spec);
@@ -600,21 +622,30 @@ void start_recording(void *data){
 	time(&raw_time);
 	struct tm* l_time = localtime(&raw_time);
 
+	//write Timestamp
 	char timeStamp[100] = "";
 	sprintf(timeStamp, "%d-%02d-%02d %02d:%02d:%02d.%03llu",l_time->tm_year+1900,l_time->tm_mon+1,l_time->tm_mday,l_time->tm_hour,l_time->tm_min,l_time->tm_sec,ms);
 	fputs(timeStamp, audio_stamp);
 	fclose(audio_stamp);
 
+
+	//Here comes now the audio File
 	char * filename;
 	filename = get_write_filepath("audio.wav");
 	fp_audio = fopen(filename, "w");
 
-
+	//setup raw audio input and callback
 	audio_in_create(SAMPLE_RATE, AUDIO_CHANNEL_MONO, AUDIO_SAMPLE_TYPE_S16_LE, &input); //set up recorder for PCM recording audio
 	audio_in_set_stream_cb(input, _audio_io_stream_read_cb, NULL); //set callback for recording
 	audio_in_prepare(input); // starts the audio recording
 
 }
+
+
+/*
+ * Prints all collected wifi devices
+ * and sets Timestamp for them
+ */
 
 void print_wifi(){
 
@@ -641,15 +672,12 @@ void print_wifi(){
 		fputs(out, fpwifi);
 		next = next->next;
 	}
-
-
-	/*
-	devices_list_wifi
-	fputs("", fpwifi);
-*/
-
 }
 
+
+/**
+ * Print all scanned and found bluetooth devices and stamp with time
+ */
 
 void print_ble(){
 	time_t raw_time;
@@ -680,6 +708,11 @@ void print_ble(){
 }
 
 
+/*
+ * Service app has been started,
+ * 	Launch MessagePort for communication with host App
+ * 	Start audio,BLE, WIFI and sensor recording
+ */
 void service_app_control(app_control_h app_control, void *data)
 {
 	//appdata_s *ad = (appdata_s *) data;
@@ -692,6 +725,7 @@ void service_app_control(app_control_h app_control, void *data)
 			//TODO: send Time
 			return;
 		}
+		//Create Message Channel
 		message_port_register_local_port("MY_PORT", message_port_cb, data);
 		//startListener(data);
 		sendMessage("start recording");
@@ -714,6 +748,9 @@ int iteration = 0;
 time_t raw_time_recorder;
 
 
+/*
+ * Timer to stop Recording after 8 hours
+ */
 Eina_Bool __time_recorder_cb(void *data){
 	char time[10];
 	struct tm* l_time = localtime(&raw_time_recorder);
@@ -731,26 +768,29 @@ Eina_Bool __time_recorder_cb(void *data){
 
 
 /*
- * Callback for ble and wifi to be called every 10 seconds;
+ * Callback for ble and wifi to be called at a specific amount of time (In this case it should be 5 senonds and every 10 seconds we safe the devices);
+ * Safe Collected BLE and WIFI devices.
+ *
+ * !IMPORTANT the return value sets whether function gets called again or not
  */
 Eina_Bool __timer_cb(void *data){
 	if (!running) {
+		//if we are not recording anymore stop the timer via return value
 		return ECORE_CALLBACK_CANCEL;
 	}
 	if (iteration == 0) {
+		//5 seconds over
 		iteration++;
 		bt_adapter_le_stop_scan();
 		return ECORE_CALLBACK_RENEW;
 	}
+	//10 seconds over
 	print_ble();
 	print_wifi();
 	devices_list_ble = NULL;
 	devices_list_wifi = NULL;
-	//bt_adapter_le_stop_scan();
 	bt_adapter_le_start_scan(_bluetooth_le_cb, NULL);
 	iteration--;
-	//bt_adapter_stop_device_discovery();
-	//bt_adapter_start_device_discovery();
 	wifi_scan(__scan_request_cb, NULL);
 
 	return ECORE_CALLBACK_RENEW;
