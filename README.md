@@ -32,12 +32,12 @@ Import the native service app as well as the the provided Tizen WebApp into Tize
 2. First run the native service app on your device by right click on this native App Project in Tizen Studio and select "Run As" -> "Tizen Native Application" (Then the project automatically gets build and executed on the device).
 3. Then run the WebApp on your device right click on the WebApp project in tizen studio and select "Run As" -> "Tizen Web Application".
 
-The Web application should then open automatically on the smartwatch, if not you should be able to find the app at the end of your application list on your watch and select and start it.
+The Web application should then open automatically on the smartwatch, if not you should be able to find the app at the end of your application list on your watch and select and start it. \
 
-The source code of the native app can be found in this folder under src/servicesensor.c
+The source code of the native app can be found in this folder under src/servicesensor.c \
 The Web apps UI can be found in the index.html file and the JS script can be found in js/app.js
 
 ### Data Structure
 
-All recorded data are saved on the device which can be accessed via Tizen Studio and are located on the device under /home/owner/media/Others/. You can access the devices storage via the Device Manager in Tizen Studio (open via Alt+Shift+V). In the Device Manager Simply select your device and on the right since you can see the file system of the device and navigate to the location of the stored files.
+All recorded data are saved on the device which can be accessed via Tizen Studio and are located on the device under /home/owner/media/Others/. You can access the devices storage via the Device Manager in Tizen Studio (open via Alt+Shift+V). In the Device Manager Simply select your device and on the right since you can see the file system of the device and navigate to the location of the stored files. \
 All data are saved as simple Text files with timestamps except of the audio Files which are saved as raw wav files.
