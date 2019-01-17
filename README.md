@@ -29,13 +29,13 @@ Import the native service app as well as the the provided Tizen WebApp into Tize
 
 ### Run the App
 1. Make sure you selected the correct certificate for the correct device and that in the upper drop down menu the correct device is selected and connected.
-2. First run the native service app on your device by right click on this native App Project in Tizen Studio and select "Run As" -> "Tizen Native Application" (Then the project automatically gets build and executed on the device).
+2. First run the native service app on your device by right click on the native App Project in Tizen Studio and select "Run As" -> "Tizen Native Application" (Then the project automatically gets build and executed on the device).
 3. Then run the WebApp on your device right click on the WebApp project in tizen studio and select "Run As" -> "Tizen Web Application".
 
 The Web application should then open automatically on the smartwatch, if not you should be able to find the app at the end of your application list on your watch and select and start it. \
 
-The source code of the native app can be found in this folder under src/servicesensor.c \
-The Web apps UI can be found in the index.html file and the JS script can be found in js/app.js
+The source code of the native app can be found in it's project folder under src/servicesensor.c \
+The Web apps UI can be found in it's project folder in the index.html file and the JS script can be found in js/app.js
 
 ### Data Structure
 
