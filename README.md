@@ -42,32 +42,27 @@ Tizen version >= 3.0.0.2
 1. Make sure the correct Samsung Certificate is selected (one device – one certificate) and the watch is connected to the *Tizen Studio*.
 2. First, run the native service on the watch by right clicking on the *ServiceSensor* project and selecting ```Run As -> Tizen Native Application``` (the service automatically gets built and executed on the watch).
 3. Second, run the web app on the watch  by right clicking on the *HelloAccessoryProvider* project and selecting ```Run As -> Tizen Tizen Web Application```.
+4. The app automatically starts on the watch and it also appears in the list of installed apps (clik on the icon to start the app). The data collection is started/stopped by pressing the START/STOP button in the center of the screen.
 
-The Web application should then open automatically on the smartwatch, if not you should be able to find the app at the end of your application list on your watch and select and start it. \
+**Notes:**
+* Each time the data collection is started it **overwrites** the data collected before!
+* The native service functionality is implemented in *native-app/src/servicesensor.c*, the web app UI is implemented using *web-app/index.html* and *web-app/js/app.js*. 
 
-The source code of the native app can be found in it's project folder under src/servicesensor.c \
-The Web apps UI can be found in it's project folder in the index.html file and the JS script can be found in js/app.js
+### Data Extraction and Structure
+The collected sensor data is stored internally on the watch (keep in mind the space requirements, especially for audio data) under */home/owner/media/Others*. The data is extracted using the *Device Manager* in *Tizen Studio* (opens via *Alt+Shift+V*)—the watch should be connected to the *Tizen Studio*. In the *Device Manager* select the required watch and navigate to the */home/owner/media/Others* folder, then right click on the *Others* folder and select "Pull" option. 
 
-### Data Structure
-
-All recorded data are saved on the device which can be accessed via Tizen Studio and are located on the device under /home/owner/media/Others/. You can access the devices storage via the Device Manager in Tizen Studio (open via Alt+Shift+V). In the Device Manager Simply select your device and on the right since you can see the file system of the device and navigate to the location of the stored files. \
-All data are saved as simple Text files with timestamps except of the audio Files which are saved as raw wav files.
+The collected data is stored in the following structure (use [structure-gear-data.py](https://github.com/seemoo-lab/ubicomp19_zero_interaction_security/tree/master/Preprocessing) to reformat the data):
 
 ```
-Timestamp/              # Root folder of the sensor data, corresponds the start time of data collection
-  + audio/
-  | + XX.wav            # Encoded audio data, XX is the sensor number, e.g., 01, 02, etc. set in the DataCollector app
-  | + audio.time        # Time when the audio started
-  + ble/
-  | + ble.txt           # BLE data
-  + sensors/
-  | + accData.txt       # Accelerometer data
-  | + barData.txt       # Barometric data
-  | + gyrData.txt       # Gyroscope data
-  | + luxData.txt       # Lluminosity data
-  | + magData.txt       # Magnetometer data
-  + wifi/
-    + wifi.txt          # WiFi data
++ Others/ 
+| + accData.txt
+| + audio.wav
+| + audio.time
+| + barData.txt
+| + ble.txt
+| + gyrData.txt
+| + luxData.txt
+| + wifi.txt
 ```
 
 ## Authors
