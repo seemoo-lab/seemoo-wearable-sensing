@@ -26,42 +26,22 @@ Tizen version >= 3.0.0.2
 ```
 
 ### Setting Up the Environment
-1. Make sure you selected the correct certificate for the correct device and that in the upper drop down menu the correct device is selected and connected.
-2. First run the native service app on your device by right click on the native App Project in Tizen Studio and select "Run As" -> "Tizen Native Application" (Then the project automatically gets build and executed on the device).
-3. Then run the WebApp on your device right click on the WebApp project in tizen studio and select "Run As" -> "Tizen Web Application".
-
-
-
 1. Download and install *Tizen Studio* (https://www.tizen.org/).
-2. Download and install *Tizen Studio* (https://www.tizen.org/).
-2. Use the *Tizen Package Manager* (press *Alt+Shift+P* in *Tizen Studio* to open it) to install at least Wearable SDK 3.2.2 and Wearable 3.0 and under Extension SDK install additionally Samsung Certification Extension and Samsung Wearable extension. 
-3. Enable debugging on your Tizen Smartwatch and connect it with Tizen Studio as described in here: (https://developer.tizen.org/development/training/web-application/getting-started/creating-your-first-tizen-wearable-web-application#run) -> Get to the point "Running on a Target Device"
-    
-    **Note**: Since both Tizen Studio and the Tizen device need to be in the same network it might be helpful to host an hotspot on your computer and connect your watch to it
-        For Windows the following script might work by changing the password to one you want to have for your hotspot: 
-        
-        **Note**: Not every machine supports this
-        
-        ```CMD
-        $ netsh wlan set hostednetwork mode=allow ssid=Hotspot key=password
-        $ netsh wlan start hostednetwork
-        ```
-4. Create Samsung Certificates (Samsung Account Needed) \
-Create a Samsung Certificate via the Certificate Manager (Alt+Shift+C) as described in here : (https://developer.tizen.org/development/visual-studio-tools-tizen/tools/certificate-manager).
+2. Use the *Tizen Package Manager* (press *Alt+Shift+P* to open in *Tizen Studio*) to install the necessary SDKs and Extensions mentioned above.
+3. Enable debugging on the *Gear S3* watch and connect it to the *Tizen Studio* as described [here](https://developer.tizen.org/development/training/web-application/getting-started/creating-your-first-tizen-wearable-web-application#run) (see the section "Running on a Target Device").  
+4. Create a Samsung Certificate using the *Certificate Manager* (press *Alt+Shift+P* to open in *Tizen Studio*) as described [here](https://developer.tizen.org/development/visual-studio-tools-tizen/tools/certificate-manager).
+5. Import native and web projects by using ```File -> Import -> Tizen -> Tizen Project``` and following the wizzard instructions.
+
+**Notes:**
+* This app can only be tested on a real device and will not work on emulator. 
+* To connect the *Tizen Studio* and the targer *Gear S3* device make sure they are in the same WiFi network.
+* For each Gear S3 watch a new Samsung Certificate **MUST be created** in order to install the app! 
 
 
-    **Note**: For each hardware Device you need to create its own certificate in order to be able to install an App on it.
-
-5. Import the Projects. \
-Import the native service app as well as the the provided Tizen WebApp into Tizen Studio by selecting File -> Open Projects from File System... and then select each project the native service app as well as the Web App.
-
-**Note**: You need and actual device in order to start and test the app it wont work with an emulator.
-
-
-### Run the App
-1. Make sure you selected the correct certificate for the correct device and that in the upper drop down menu the correct device is selected and connected.
-2. First run the native service app on your device by right click on the native App Project in Tizen Studio and select "Run As" -> "Tizen Native Application" (Then the project automatically gets build and executed on the device).
-3. Then run the WebApp on your device right click on the WebApp project in tizen studio and select "Run As" -> "Tizen Web Application".
+### Running the App
+1. Make sure the correct Samsung Certificate is selected (one device – one certificate) and the watch is connected to the *Tizen Studio*.
+2. First, run the native service on the watch by right clicking on the *ServiceSensor* project and selecting ```Run As -> Tizen Native Application``` (the service automatically gets built and executed on the watch).
+3. Second, run the web app on the watch  by right clicking on the *HelloAccessoryProvider* project and selecting ```Run As -> Tizen Tizen Web Application```.
 
 The Web application should then open automatically on the smartwatch, if not you should be able to find the app at the end of your application list on your watch and select and start it. \
 
