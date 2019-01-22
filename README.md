@@ -41,7 +41,7 @@ Tizen version >= 3.0.0.2
 ### Running the App
 1. Make sure the correct Samsung Certificate is selected (one device – one certificate) and the watch is connected to the *Tizen Studio*.
 2. First, run the native service on the watch by right clicking on the *ServiceSensor* project and selecting ```Run As -> Tizen Native Application``` (the service automatically gets built and executed on the watch).
-3. Second, run the web app on the watch  by right clicking on the *HelloAccessoryProvider* project and selecting ```Run As -> Tizen Tizen Web Application```.
+3. Second, run the web app on the watch  by right clicking on the *HelloAccessoryProvider* project and selecting ```Run As -> Tizen Web Application```.
 4. The app automatically starts on the watch and it also appears in the list of installed apps (clik on the icon to start the app). The data collection is started/stopped by pressing the START/STOP button in the center of the screen.
 
 **Notes:**
