@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://developer.samsung.com/HelloAccessoryProvider" version="2.0.0" viewmodes="maximized">
+    <tizen:application id="UM2FcDkLYZ.HelloAccessoryProvider" package="UM2FcDkLYZ" required_version="2.2"/>
+    <content src="index.html"/>
+    <feature name="http://developer.samsung.com/tizen/feature/network.accessory_protocol"/>
+    <feature name="tizen.org/feature/media.audio_recording"/>
+    <feature name="tizen.org/feature/sensor.accelerometer"/>
+    <feature name="tizen.org/feature/media.video_recording"/>
+    <feature name="tizen.org/feature/sensor.activity_recognition"/>
+    <feature name="tizen.org/feature/sensor.barometer"/>
+    <feature name="tizen.org/feature/sensor.gravity"/>
+    <feature name="tizen.org/feature/sensor.gyroscope"/>
+    <feature name="tizen.org/feature/sensor.heart_rate_monitor"/>
+    <feature name="tizen.org/feature/sensor.heart_rate_monitor.led_green"/>
+    <feature name="tizen.org/feature/sensor.heart_rate_monitor.led_ir"/>
+    <feature name="tizen.org/feature/sensor.heart_rate_monitor.led_red"/>
+    <feature name="tizen.org/feature/sensor.magnetometer"/>
+    <feature name="tizen.org/feature/sensor.pedometer"/>
+    <feature name="tizen.org/feature/sensor.photometer"/>
+    <feature name="tizen.org/feature/sensor.proximity"/>
+    <feature name="tizen.org/feature/sensor.ultraviolet"/>
+    <feature name="tizen.org/feature/sensor.wrist_up"/>
+    <feature name="http://tizen.org/feature/sensor.temperature"/>
+    <feature name="http://tizen.org/feature/sensor.accelerometer"/>
+    <feature name="http://tizen.org/feature/sensor.gravity"/>
+    <feature name="http://tizen.org/feature/sensor.barometer"/>
+    <feature name="http://tizen.org/feature/network.wifi"/>
+    <feature name="http://tizen.org/feature/sensor.gyroscope"/>
+    <feature name="http://tizen.org/feature/sensor.magnetometer"/>
+    <feature name="http://tizen.org/feature/sensor.humidity"/>
+    <icon src="icon.png"/>
+    <tizen:metadata key="AccessoryServicesLocation" value="res/xml/accessoryservices.xml"/>
+    <name>HelloAccessoryProvider</name>
+    <tizen:privilege name="http://tizen.org/privilege/mediastorage"/>
+    <tizen:privilege name="http://tizen.org/privilege/network.get"/>
+    <tizen:privilege name="http://tizen.org/privilege/network.set"/>
+    <tizen:privilege name="http://tizen.org/privilege/bluetooth"/>
+    <tizen:privilege name="http://tizen.org/privilege/externalstorage.appdata"/>
+    <tizen:privilege name="http://tizen.org/privilege/recorder"/>
+    <tizen:privilege name="http://tizen.org/privilege/network.profile"/>
+    <tizen:privilege name="http://tizen.org/privilege/externalstorage"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+    <tizen:privilege name="http://developer.samsung.com/tizen/privilege/accessoryprotocol"/>
+    <tizen:privilege name="http://tizen.org/privilege/application.info"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
+    <tizen:privilege name="http://tizen.org/privilege/healthinfo"/>
+    <tizen:privilege name="http://tizen.org/privilege/audiorecorder"/>
+    <tizen:privilege name="http://tizen.org/privilege/mediacapture"/>
+    <tizen:privilege name="http://tizen.org/privilege/camera"/>
+    <tizen:privilege name="http://developer.samsung.com/privilege/accessoryprotocol"/>
+    <tizen:profile name="wearable"/>
+    <tizen:setting background-support="enable" encryption="disable" hwkey-event="enable"/>
+</widget>

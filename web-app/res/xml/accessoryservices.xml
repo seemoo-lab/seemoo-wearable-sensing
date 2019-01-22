@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <application name="HelloAccessoryProvider" >
+        <serviceProfile
+            id="/sample/hello"
+            name="helloaccessory"
+            autoLaunchAppId="UM2FcDkLYZ.HelloAccessoryProvider"
+            role="provider"
+            version="1.0"
+            serviceLimit="ANY"
+                serviceTimeout="10">
+            <supportedTransports>
+                <transport type="TRANSPORT_BT" />
+                <transport type="TRANSPORT_WIFI"/>
+            </supportedTransports>
+            <serviceChannel
+                id="104"
+                dataRate="high"
+                priority="low"
+                reliability= "enable"/>
+        </serviceProfile>
+    </application>
+</resources>
