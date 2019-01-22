@@ -49,7 +49,7 @@ Tizen version >= 3.0.0.2
 * The native service functionality is implemented in *native-app/src/servicesensor.c*, the web app UI is implemented using *web-app/index.html* and *web-app/js/app.js*. 
 
 ### Data Extraction and Structure
-The collected sensor data is stored internally on the watch (keep in mind the space requirements, especially for audio data) under */home/owner/media/Others*. The data is extracted using the *Device Manager* in *Tizen Studio* (opens via *Alt+Shift+V*)—the watch should be connected to the *Tizen Studio*. In the *Device Manager* select the required watch and navigate to the */home/owner/media/Others* folder, then right click on the *Others* folder and select the "Pull" option. 
+The collected sensor data is stored internally on the watch (keep in mind the space requirements, especially for audio data) under */home/owner/media/Others*. The data is extracted using the *Device Manager* in *Tizen Studio* (opens via *Alt+Shift+V*)—the watch must be connected to the *Tizen Studio*. In the *Device Manager* select the required watch and navigate to the */home/owner/media/Others* folder, then right click on the *Others* folder and select the "Pull" option. 
 
 The collected data is stored in the following structure (use [structure-gear-data.py](https://github.com/seemoo-lab/ubicomp19_zero_interaction_security/tree/master/Preprocessing) to reformat the data):
 
