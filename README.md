@@ -36,6 +36,7 @@ Tizen version >= 3.0.0.2
 * This app can only be tested on a real device and will not work on the emulator. 
 * To connect the *Tizen Studio* and the targer *Gear S3* device make sure they are in the same WiFi network.
 * For each Gear S3 watch a new Samsung Certificate **MUST be created** in order to install the app! 
+* For app installation it is required (!) to set up up-to-date time on a smartwatch (can be done automatically via pairing with a smartphone or the time can be manually set on a smartwatch)
 
 
 ### Running the App
